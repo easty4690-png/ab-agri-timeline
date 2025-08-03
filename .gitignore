@@ -1,8 +1,15 @@
+# Virtual environment
 .venv/
+
+# Python bytecode / cache
 __pycache__/
 *.py[cod]
 *.pyo
 *.pyd
+
+# Editor/temp
 *.swp
 *.DS_Store
+
+# No user AppData cruft
 AppData/
