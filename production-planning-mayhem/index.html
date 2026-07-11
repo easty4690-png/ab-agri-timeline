@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#071b2a" />
+  <meta name="description" content="Production Planning Mayhem — a realistic water supply balancing game." />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" href="icon.svg" type="image/svg+xml" />
+  <title>Production Planning Mayhem</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="logo" aria-hidden="true">
+          <svg viewBox="0 0 64 64"><path fill="none" stroke="white" stroke-width="5" stroke-linecap="round" d="M32 7C24 19 13 29 13 41a19 19 0 0 0 38 0C51 29 40 19 32 7Z"/><path fill="none" stroke="white" stroke-width="4" stroke-linecap="round" d="M21 42c3 7 9 10 17 8"/></svg>
+        </div>
+        <div>
+          <h1>Production Planning Mayhem</h1>
+          <p>Keep six towns supplied. Protect storage. Survive the unexpected.</p>
+        </div>
+      </div>
+      <div class="header-stats">
+        <div class="pill">Stage <strong id="headerDay">1 / 14</strong></div>
+        <div class="pill">Campaign score <strong id="headerScore">0</strong></div>
+        <div class="pill">Rank <strong id="headerRank">Trainee</strong></div>
+      </div>
+    </header>
+
+    <section class="briefing">
+      <article class="card">
+        <div class="card-body">
+          <div class="brief-title">
+            <div class="day-number" id="dayNumber">D1</div>
+            <div>
+              <h2 id="scenarioTitle">Normal operating day</h2>
+              <p id="scenarioBrief">A steady start — establish a resilient plan without overspending.</p>
+            </div>
+          </div>
+          <div class="forecast-grid">
+            <div class="forecast-item"><span>Weather</span><strong id="weatherText">17°C · Cloudy</strong></div>
+            <div class="forecast-item"><span>Forecast demand</span><strong id="forecastDemand">38.7 ML/d</strong></div>
+            <div class="forecast-item"><span>Available output</span><strong id="availableOutput">54.0 ML/d</strong></div>
+            <div class="forecast-item"><span>Confidence</span><strong id="forecastConfidence">High</strong></div>
+          </div>
+        </div>
+      </article>
+      <aside class="card">
+        <div class="card-head"><div><h3>Shift objectives</h3><p>How the day is judged</p></div></div>
+        <div class="card-body">
+          <ul class="mission-list">
+            <li><strong>Supply:</strong> meet town demand through both peaks.</li>
+            <li><strong>Pressure:</strong> avoid falling below 7 m static head.</li>
+            <li><strong>Resilience:</strong> finish with usable storage for tomorrow.</li>
+            <li><strong>Efficiency:</strong> avoid unnecessary imports and pumping.</li>
+          </ul>
+        </div>
+      </aside>
+    </section>
+
+    <main class="main-grid">
+      <section class="card">
+        <div class="card-head">
+          <div><h2>Fictional regional supply system</h2><p>Flows are in megalitres per day (ML/d). Storage continuity runs at 30-minute intervals.</p></div>
+          <div class="pill">Live plan <strong id="planState">Balanced</strong></div>
+        </div>
+        <div class="network-wrap">
+          <svg id="networkSvg" viewBox="0 0 920 590" role="img" aria-label="Water network schematic">
+            <defs>
+              <linearGradient id="nodeGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#123f5a"/><stop offset="1" stop-color="#0b2639"/></linearGradient>
+              <linearGradient id="sourceGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#155f7e"/><stop offset="1" stop-color="#17429a"/></linearGradient>
+            </defs>
+
+            <path id="pipeRiver" class="pipe" stroke-width="7" d="M145 95 C220 95 230 180 310 180"/>
+            <path id="pipeBore" class="pipe" stroke-width="7" d="M145 220 C225 220 235 200 310 200"/>
+            <path id="pipeImport" class="pipe" stroke-width="7" d="M145 345 C225 345 240 220 310 220"/>
+
+            <path id="pipeFeedNorth" class="pipe" stroke-width="7" d="M420 185 C505 135 560 95 630 90"/>
+            <path id="pipeFeedCentral" class="pipe" stroke-width="7" d="M430 200 C520 200 555 220 630 220"/>
+            <path id="pipeFeedEast" class="pipe" stroke-width="7" d="M420 215 C500 270 550 355 630 355"/>
+            <path id="pipeFeedSouth" class="pipe" stroke-width="7" d="M395 240 C455 340 535 485 630 485"/>
+
+            <path id="pipeNC" class="pipe transfer" stroke-width="5" d="M682 125 C700 155 700 170 682 190"/>
+            <path id="pipeCE" class="pipe transfer" stroke-width="5" d="M682 255 C700 285 700 310 682 325"/>
+            <path id="pipeCS" class="pipe transfer" stroke-width="5" d="M650 255 C620 330 620 405 650 455"/>
+
+            <path class="pipe" stroke-width="5" d="M735 85 C790 70 815 55 860 55"/>
+            <path class="pipe" stroke-width="5" d="M735 105 C790 120 815 135 860 135"/>
+            <path class="pipe" stroke-width="5" d="M735 210 C790 198 820 195 860 195"/>
+            <path class="pipe" stroke-width="5" d="M735 235 C790 250 820 270 860 275"/>
+            <path class="pipe" stroke-width="5" d="M735 355 C790 355 820 355 860 355"/>
+            <path class="pipe" stroke-width="5" d="M735 485 C790 485 820 470 860 465"/>
+
+            <g class="node-box">
+              <rect x="35" y="55" rx="16" width="115" height="80" fill="url(#sourceGrad)" stroke="rgba(120,220,250,.32)"/>
+              <text x="92" y="83" text-anchor="middle" class="svg-label">River WTW</text>
+              <text x="92" y="102" text-anchor="middle" class="svg-sub">Surface water</text>
+              <text id="svgRiver" x="92" y="121" text-anchor="middle" class="svg-flow">34.0 ML/d</text>
+            </g>
+            <g class="node-box">
+              <rect x="35" y="180" rx="16" width="115" height="80" fill="url(#sourceGrad)" stroke="rgba(120,220,250,.32)"/>
+              <text x="92" y="208" text-anchor="middle" class="svg-label">Borehole WTW</text>
+              <text x="92" y="227" text-anchor="middle" class="svg-sub">Groundwater</text>
+              <text id="svgBore" x="92" y="246" text-anchor="middle" class="svg-flow">12.0 ML/d</text>
+            </g>
+            <g class="node-box">
+              <rect x="35" y="305" rx="16" width="115" height="80" fill="url(#sourceGrad)" stroke="rgba(120,220,250,.32)"/>
+              <text x="92" y="333" text-anchor="middle" class="svg-label">Emergency import</text>
+              <text x="92" y="352" text-anchor="middle" class="svg-sub">Bulk transfer</text>
+              <text id="svgImport" x="92" y="371" text-anchor="middle" class="svg-flow">0.0 ML/d</text>
+            </g>
+
+            <g class="node-box">
+              <rect x="305" y="155" rx="18" width="125" height="90" fill="url(#nodeGrad)" stroke="rgba(120,220,250,.32)"/>
+              <text x="367" y="188" text-anchor="middle" class="svg-label">Treated-water hub</text>
+              <text x="367" y="208" text-anchor="middle" class="svg-sub">Route to storage zones</text>
+              <text id="svgHub" x="367" y="228" text-anchor="middle" class="svg-flow">46.0 ML/d routed</text>
+            </g>
+
+            <g class="node-box">
+              <rect x="625" y="50" rx="16" width="115" height="80" fill="url(#nodeGrad)" stroke="rgba(120,220,250,.32)"/>
+              <text x="682" y="78" text-anchor="middle" class="svg-label">North Tower</text>
+              <text id="svgNorthLevel" x="682" y="98" text-anchor="middle" class="svg-sub">65% full</text>
+              <text id="svgNorthFeed" x="682" y="117" text-anchor="middle" class="svg-flow">13.0 in</text>
+            </g>
+            <g class="node-box">
+              <rect x="625" y="180" rx="16" width="115" height="80" fill="url(#nodeGrad)" stroke="rgba(120,220,250,.32)"/>
+              <text x="682" y="208" text-anchor="middle" class="svg-label">Central SR</text>
+              <text id="svgCentralLevel" x="682" y="228" text-anchor="middle" class="svg-sub">60% full</text>
+              <text id="svgCentralFeed" x="682" y="247" text-anchor="middle" class="svg-flow">17.5 in</text>
+            </g>
+            <g class="node-box">
+              <rect x="625" y="315" rx="16" width="115" height="80" fill="url(#nodeGrad)" stroke="rgba(120,220,250,.32)"/>
+              <text x="682" y="343" text-anchor="middle" class="svg-label">East Tower</text>
+              <text id="svgEastLevel" x="682" y="363" text-anchor="middle" class="svg-sub">64% full</text>
+              <text id="svgEastFeed" x="682" y="382" text-anchor="middle" class="svg-flow">6.0 in</text>
+            </g>
+            <g class="node-box">
+              <rect x="625" y="445" rx="16" width="115" height="80" fill="url(#nodeGrad)" stroke="rgba(120,220,250,.32)"/>
+              <text x="682" y="473" text-anchor="middle" class="svg-label">South SR</text>
+              <text id="svgSouthLevel" x="682" y="493" text-anchor="middle" class="svg-sub">65% full</text>
+              <text id="svgSouthFeed" x="682" y="512" text-anchor="middle" class="svg-flow">9.5 in</text>
+            </g>
+
+            <g><circle cx="875" cy="55" r="28" fill="#11334b" stroke="rgba(120,220,250,.3)"/><text x="875" y="52" text-anchor="middle" class="svg-label">Northbridge</text><text x="875" y="67" text-anchor="middle" class="svg-sub">48k</text></g>
+            <g><circle cx="875" cy="135" r="28" fill="#11334b" stroke="rgba(120,220,250,.3)"/><text x="875" y="132" text-anchor="middle" class="svg-label">Millhaven</text><text x="875" y="147" text-anchor="middle" class="svg-sub">33k</text></g>
+            <g><circle cx="875" cy="195" r="28" fill="#11334b" stroke="rgba(120,220,250,.3)"/><text x="875" y="192" text-anchor="middle" class="svg-label">Riverside</text><text x="875" y="207" text-anchor="middle" class="svg-sub">56k</text></g>
+            <g><circle cx="875" cy="275" r="28" fill="#11334b" stroke="rgba(120,220,250,.3)"/><text x="875" y="272" text-anchor="middle" class="svg-label">Kingsmead</text><text x="875" y="287" text-anchor="middle" class="svg-sub">39k</text></g>
+            <g><circle cx="875" cy="355" r="28" fill="#11334b" stroke="rgba(120,220,250,.3)"/><text x="875" y="352" text-anchor="middle" class="svg-label">Fenwick</text><text x="875" y="367" text-anchor="middle" class="svg-sub">29k</text></g>
+            <g><circle cx="875" cy="465" r="28" fill="#11334b" stroke="rgba(120,220,250,.3)"/><text x="875" y="462" text-anchor="middle" class="svg-label">Ashcombe</text><text x="875" y="477" text-anchor="middle" class="svg-sub">44k</text></g>
+
+            <text id="svgNC" x="715" y="160" class="svg-flow">0.0</text>
+            <text id="svgCE" x="715" y="292" class="svg-flow">0.0</text>
+            <text id="svgCS" x="592" y="360" class="svg-flow">0.0</text>
+          </svg>
+        </div>
+        <div class="storage-gauges" id="storageGauges"></div>
+      </section>
+
+      <aside class="card controls">
+        <div class="card-head"><div><h2>Daily production plan</h2><p>Set constant operating targets for the next accelerated 24 hours.</p></div></div>
+
+        <div class="control-section">
+          <h3>1. Production</h3><p>Source output will be capped by today’s availability.</p>
+          <div id="sourceControls"></div>
+        </div>
+
+        <div class="control-section">
+          <h3>2. Route treated water</h3><p>Allocate output to the four storage zones.</p>
+          <div id="feedControls"></div>
+          <div class="balance-box" id="balanceBox"></div>
+        </div>
+
+        <div class="control-section">
+          <h3>3. Inter-zone transfers</h3><p>Negative values reverse the direction shown.</p>
+          <div id="transferControls"></div>
+        </div>
+
+        <div class="control-section">
+          <h3>4. Operational intervention</h3><p>You have capacity for one additional intervention today.</p>
+          <select id="interventionSelect">
+            <option value="none">No additional intervention</option>
+            <option value="repair">Deploy burst repair crew</option>
+            <option value="pressure">Pressure management sweep</option>
+            <option value="demand">Customer demand appeal</option>
+          </select>
+          <div class="intervention-note" id="interventionNote">Save resources and rely on the production plan.</div>
+          <div class="button-row">
+            <button class="btn" id="plannerBtn">Suggest a plan</button>
+            <button class="btn btn-primary" id="runBtn">Run accelerated day</button>
+          </div>
+          <button class="btn btn-danger" id="resetBtn" style="width:100%;margin-top:9px">Restart campaign</button>
+        </div>
+      </aside>
+    </main>
+
+    <section class="card results" id="resultsPanel">
+      <div class="score-banner">
+        <div class="score-ring" id="scoreRing"><div class="score-ring-inner"><strong id="dayScore">0</strong><span>day score</span></div></div>
+        <div class="score-copy"><h2 id="resultHeadline">Shift complete</h2><p id="resultSummary"></p></div>
+      </div>
+      <div class="metric-grid" id="metricsGrid"></div>
+      <div class="breakdown" id="scoreBreakdown"></div>
+      <div class="chart-grid">
+        <div class="chart-box"><h3>System demand and routed production</h3><canvas id="flowChart" width="700" height="300"></canvas></div>
+        <div class="chart-box"><h3>Storage level through the day</h3><canvas id="storageChart" width="700" height="300"></canvas></div>
+      </div>
+      <div class="town-table-wrap"><table><thead><tr><th>Town</th><th>Required</th><th>Delivered</th><th>Demand met</th><th>Minimum pressure</th><th>Status</th></tr></thead><tbody id="townResults"></tbody></table></div>
+      <div class="card-body" style="padding-top:0"><button class="btn btn-primary" id="nextDayBtn" style="width:100%">Continue to next stage</button></div>
+    </section>
+
+    <section class="history-method">
+      <article class="card">
+        <div class="card-head"><div><h2>Campaign log</h2><p>Your decisions are saved on this device.</p></div></div>
+        <div class="card-body history-list" id="historyList"></div>
+      </article>
+      <article class="card">
+        <div class="card-head"><div><h2>How the model works</h2><p>Industry-based mechanics, simplified for gameplay.</p></div></div>
+        <div class="card-body">
+          <details open><summary>Water balance and storage</summary><p>Every storage asset follows continuity at each 30-minute step:</p><div class="formula">V(t+Δt) = V(t) + [inflow − demand − leakage − transfer] × Δt</div><p>No water is invented. If the available volume is insufficient, town deliveries are proportionally curtailed.</p></details>
+          <details><summary>Demand and daily peaks</summary><p>Domestic use is based on population × 140 litres per person per day, plus fictional non-household demand. A normalised 48-point profile creates morning and evening peaks. Each stage adds weather, event and forecast-error multipliers.</p></details>
+          <details><summary>Pressure and hydraulic loss</summary><p>Pressure head is storage water-surface elevation minus town elevation and a flow-dependent headloss term. Delivered demand reduces when pressure is low. The game flags the UK Guaranteed Standards Scheme threshold of 7 metres static head.</p></details>
+          <details><summary>Leakage and water age</summary><p>Background leakage increases with pressure and burst events add a separate loss. Water age is tracked as a completely mixed storage approximation; high age reduces the quality score.</p></details>
+          <details><summary>What is deliberately simplified</summary><p>This is an educational operational simulator, not an engineering design model. It does not solve a full looped pipe network, chlorine chemistry, asset-specific pump curves or real company infrastructure. A full professional model would typically use software such as EPANET or an equivalent hydraulic package.</p></details>
+          <details><summary>Research basis</summary><ul><li>US EPA EPANET 2.2 capabilities and extended-period simulation.</li><li>Ofwat guidance on pressure, leakage and water balance.</li><li>Drinking Water Inspectorate standards for potable-water quality.</li><li>UK public-demand baseline and peak-demand reporting.</li></ul></details>
+        </div>
+      </article>
+    </section>
+
+    <footer class="footer">Production Planning Mayhem uses a wholly fictional network. It is designed for learning and entertainment, not live operational decision-making.</footer>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <div class="modal-backdrop" id="introModal">
+    <div class="modal">
+      <h2>Welcome to Production Planning Mayhem</h2>
+      <p>You are taking control of a fictional regional water supply system for 14 increasingly difficult days. Each day is simulated in 30-minute hydraulic-operational steps.</p>
+      <div class="modal-grid">
+        <div class="modal-chip"><strong>Balance</strong><br>Production, demand and storage</div>
+        <div class="modal-chip"><strong>Protect</strong><br>Pressure and water age</div>
+        <div class="modal-chip"><strong>Respond</strong><br>Outages, bursts and heat</div>
+      </div>
+      <p>Your progress is stored locally, so the game resumes when you reopen the link on the same device.</p>
+      <button class="btn btn-primary" id="startBtn" style="width:100%">Take control</button>
+    </div>
+  </div>
+
+  <script src="app.js" defer></script>
+</body>
+</html>
