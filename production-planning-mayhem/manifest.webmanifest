@@ -1,0 +1,12 @@
+{
+  "name": "Production Planning Mayhem",
+  "short_name": "PP Mayhem",
+  "description": "A realistic water supply production-planning game.",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#06131f",
+  "theme_color": "#071b2a",
+  "icons": [
+    {"src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable"}
+  ]
+}
