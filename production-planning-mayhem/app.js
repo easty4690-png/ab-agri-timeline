@@ -1,0 +1,1 @@
+(async()=>{for(const src of ['./app-core.js','./app-sim.js','./app-ui.js']){await new Promise((resolve,reject)=>{const script=document.createElement('script');script.src=src;script.onload=resolve;script.onerror=reject;document.head.appendChild(script);});}})().catch(error=>{console.error('Production Planning Mayhem failed to load',error);});
